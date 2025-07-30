@@ -21,7 +21,7 @@ export const artifacts: Artifact[] = [
     significance: 'These seals provide crucial evidence of the sophisticated urban civilization of the Indus Valley, demonstrating advanced craftsmanship, standardized weights and measures, and extensive trade networks reaching Mesopotamia.',
     location: 'Harappa and Mohenjo-daro (present-day Pakistan)',
     culture: 'Harappan',
-    imageUrl: 'https://images.pexels.com/photos/8078833/pexels-photo-8078833.jpeg',
+    imageUrl: 'https://live.staticflickr.com/8328/8082734037_1b3d1c88bc_b.jpg',
     category: 'Administrative'
   },
   {
@@ -33,7 +33,7 @@ export const artifacts: Artifact[] = [
     significance: 'One of the earliest known bronze sculptures in human history, showcasing the artistic sophistication and metallurgical expertise of the Indus Valley Civilization.',
     location: 'Mohenjo-daro (present-day Pakistan)',
     culture: 'Harappan',
-    imageUrl: 'https://images.pexels.com/photos/7260900/pexels-photo-7260900.jpeg',
+    imageUrl: 'https://images.news18.com/ibnlive/uploads/2023/02/dancing-girl.jpg',
     category: 'Sculpture'
   },
   {
@@ -45,7 +45,7 @@ export const artifacts: Artifact[] = [
     significance: 'Forms the foundation of Hindu philosophy and ritual practices. The sophisticated oral tradition demonstrates remarkable memory techniques and linguistic precision.',
     location: 'Northwestern Indian subcontinent',
     culture: 'Vedic Aryans',
-    imageUrl: 'https://images.pexels.com/photos/8078828/pexels-photo-8078828.jpeg',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/02/Rigveda_MS2097.jpg',
     category: 'Literature'
   },
   {
@@ -57,7 +57,7 @@ export const artifacts: Artifact[] = [
     significance: 'Marks the transition from pastoral to agricultural society and the establishment of urban centers in the Gangetic plains.',
     location: 'Ganga-Yamuna doab region',
     culture: 'Late Vedic',
-    imageUrl: 'https://images.pexels.com/photos/8078836/pexels-photo-8078836.jpeg',
+    imageUrl: 'https://www.indianetzone.com/public/admin/uploadImage/Painted_Gray_Ware.jpg',
     category: 'Pottery'
   },
   {
@@ -69,7 +69,7 @@ export const artifacts: Artifact[] = [
     significance: 'Represents the classical ideal of Buddhist art and became the standard representation of Buddha across Asia. The Gupta style influenced Buddhist art from Central Asia to Southeast Asia.',
     location: 'Sarnath, Uttar Pradesh',
     culture: 'Gupta',
-    imageUrl: 'https://images.pexels.com/photos/7260900/pexels-photo-7260900.jpeg',
+    imageUrl: 'https://compass.rauias.com/wp-content/uploads/2023/05/577px-Sarnath_standing_Buddha_5th_century_detail.jpg',
     category: 'Religious Art'
   },
   {
@@ -81,7 +81,7 @@ export const artifacts: Artifact[] = [
     significance: 'First major attempt at creating a unified moral and administrative framework across the Indian subcontinent. The lion capital became India\'s national emblem.',
     location: 'Various locations across India (Sarnath, Delhi, etc.)',
     culture: 'Mauryan',
-    imageUrl: 'https://images.pexels.com/photos/12935073/pexels-photo-12935073.jpeg',
+    imageUrl: 'https://cdn.britannica.com/52/142552-004-4DF8C59B.jpg',
     category: 'Architecture'
   },
   {
@@ -93,7 +93,7 @@ export const artifacts: Artifact[] = [
     significance: 'Demonstrates the cultural synthesis between Greek artistic traditions brought by Alexander\'s successors and Buddhist religious themes, creating the first anthropomorphic representations of Buddha.',
     location: 'Gandhara region (present-day Pakistan and Afghanistan)',
     culture: 'Kushan-Gandhara',
-    imageUrl: 'https://images.pexels.com/photos/7260900/pexels-photo-7260900.jpeg',
+    imageUrl: 'https://smarthistory.org/wp-content/uploads/2021/05/gandhara-buddha-BM.png',
     category: 'Religious Art'
   },
   {
