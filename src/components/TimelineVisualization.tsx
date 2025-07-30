@@ -1,269 +1,407 @@
-import React, { useState, useMemo } from 'react';
-import { Calendar, MapPin, Users, Clock, Star, ChevronRight, Eye, Info, Zap } from 'lucide-react';
-import { Artifact } from '../data/artifacts';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Calendar, MapPin, Users, Clock, Star, ChevronRight, Eye, Info, Zap, Filter, Search } from 'lucide-react';
 
-// Define color and icon mappings
-const categoryColors: Record<string, string> = {
-  'Architecture': 'bg-blue-500',
-  'Sculpture': 'bg-emerald-500',
-  'Painting': 'bg-purple-500',
-  'Religious Art': 'bg-orange-500',
-  'Cave Art': 'bg-amber-500',
-  'Administrative': 'bg-slate-500',
-  'Pottery': 'bg-rose-500',
-  'Literature': 'bg-teal-500',
-  'Traditional Art': 'bg-yellow-500',
-  'Colonial Art': 'bg-indigo-500',
-  'Military': 'bg-red-500',
-};
+// Mock Artifact interface for demo
+interface Artifact {
+  id: string;
+  title: string;
+  year: number;
+  period: string;
+  culture: string;
+  location: string;
+  category: string;
+  description: string;
+  significance: string;
+  imageUrl: string;
+}
 
-const categoryIcons: Record<string, string> = {
-  'Architecture': '🏛️',
-  'Sculpture': '🗿',
-  'Painting': '🎨',
-  'Religious Art': '🕉️',
-  'Cave Art': '🕳️',
-  'Administrative': '📜',
-  'Pottery': '🏺',
-  'Literature': '📚',
-  'Traditional Art': '🖼️',
-  'Colonial Art': '🖼️',
-  'Military': '⚔️',
+// Sample data for demonstration
+const sampleArtifacts: Artifact[] = [
+  {
+    id: '1',
+    title: 'Harappan Civilization Seals',
+    year: -2500,
+    period: 'Indus Valley Civilization',
+    culture: 'Harappan',
+    location: 'Harappa, Pakistan',
+    category: 'Administrative',
+    description: 'Ancient seals with undeciphered script from the Indus Valley Civilization.',
+    significance: 'Represents one of the earliest writing systems in human history.',
+    imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop'
+  },
+  {
+    id: '2',
+    title: 'Ajanta Cave Paintings',
+    year: -200,
+    period: 'Ancient Period',
+    culture: 'Buddhist',
+    location: 'Maharashtra, India',
+    category: 'Cave Art',
+    description: 'Magnificent Buddhist cave paintings depicting Jataka tales.',
+    significance: 'Masterpiece of ancient Indian art and Buddhist culture.',
+    imageUrl: 'https://images.unsplash.com/photo-1539650116574-75c0c6d0ed51?w=400&h=300&fit=crop'
+  },
+  {
+    id: '3',
+    title: 'Mathura Sculptures',
+    year: 100,
+    period: 'Kushan Period',
+    culture: 'Kushan',
+    location: 'Mathura, Uttar Pradesh',
+    category: 'Sculpture',
+    description: 'Red sandstone sculptures from the Mathura school of art.',
+    significance: 'Represents the distinctive Mathura style of Buddhist and Jain art.',
+    imageUrl: 'https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=400&h=300&fit=crop'
+  },
+  {
+    id: '4',
+    title: 'Ellora Kailasa Temple',
+    year: 760,
+    period: 'Rashtrakuta Period',
+    culture: 'Hindu',
+    location: 'Maharashtra, India',
+    category: 'Architecture',
+    description: 'Monolithic temple carved from a single rock.',
+    significance: 'Represents the pinnacle of rock-cut architecture in India.',
+    imageUrl: 'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=400&h=300&fit=crop'
+  },
+  {
+    id: '5',
+    title: 'Chola Bronze Sculptures',
+    year: 1000,
+    period: 'Chola Period',
+    culture: 'Tamil',
+    location: 'Tamil Nadu, India',
+    category: 'Sculpture',
+    description: 'Exquisite bronze sculptures of Hindu deities.',
+    significance: 'Represents the golden age of South Indian bronze casting.',
+    imageUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400&h=300&fit=crop'
+  },
+  {
+    id: '6',
+    title: 'Taj Mahal',
+    year: 1653,
+    period: 'Mughal Period',
+    culture: 'Mughal',
+    location: 'Agra, Uttar Pradesh',
+    category: 'Architecture',
+    description: 'Ivory-white marble mausoleum built by Shah Jahan.',
+    significance: 'Symbol of eternal love and masterpiece of Mughal architecture.',
+    imageUrl: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400&h=300&fit=crop'
+  }
+];
+
+// Enhanced color and icon mappings
+const categoryConfig = {
+  'Architecture': { color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-500', icon: '🏛️', lightBg: 'bg-blue-50', border: 'border-blue-200' },
+  'Sculpture': { color: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-500', icon: '🗿', lightBg: 'bg-emerald-50', border: 'border-emerald-200' },
+  'Painting': { color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-500', icon: '🎨', lightBg: 'bg-purple-50', border: 'border-purple-200' },
+  'Religious Art': { color: 'from-orange-500 to-orange-600', bgColor: 'bg-orange-500', icon: '🕉️', lightBg: 'bg-orange-50', border: 'border-orange-200' },
+  'Cave Art': { color: 'from-amber-500 to-amber-600', bgColor: 'bg-amber-500', icon: '🕳️', lightBg: 'bg-amber-50', border: 'border-amber-200' },
+  'Administrative': { color: 'from-slate-500 to-slate-600', bgColor: 'bg-slate-500', icon: '📜', lightBg: 'bg-slate-50', border: 'border-slate-200' },
+  'Pottery': { color: 'from-rose-500 to-rose-600', bgColor: 'bg-rose-500', icon: '🏺', lightBg: 'bg-rose-50', border: 'border-rose-200' },
+  'Literature': { color: 'from-teal-500 to-teal-600', bgColor: 'bg-teal-500', icon: '📚', lightBg: 'bg-teal-50', border: 'border-teal-200' },
+  'Traditional Art': { color: 'from-yellow-500 to-yellow-600', bgColor: 'bg-yellow-500', icon: '🖼️', lightBg: 'bg-yellow-50', border: 'border-yellow-200' },
+  'Colonial Art': { color: 'from-indigo-500 to-indigo-600', bgColor: 'bg-indigo-500', icon: '🖼️', lightBg: 'bg-indigo-50', border: 'border-indigo-200' },
+  'Military': { color: 'from-red-500 to-red-600', bgColor: 'bg-red-500', icon: '⚔️', lightBg: 'bg-red-50', border: 'border-red-200' },
 };
 
 const eraInfo = (year: number) => {
-  if (year < -1500) return { name: "Ancient Period", color: "bg-blue-500", textColor: "text-blue-700" };
-  if (year < 0) return { name: "Vedic Era", color: "bg-green-500", textColor: "text-green-700" };
-  if (year < 500) return { name: "Classical Period", color: "bg-orange-500", textColor: "text-orange-700" };
-  if (year < 1000) return { name: "Early Medieval", color: "bg-purple-500", textColor: "text-purple-700" };
-  if (year < 1500) return { name: "Medieval Period", color: "bg-pink-500", textColor: "text-pink-700" };
-  return { name: "Modern Era", color: "bg-indigo-500", textColor: "text-indigo-700" };
+  if (year < -1500) return { name: "Ancient Period", color: "from-blue-500 to-blue-700", textColor: "text-blue-700", bgColor: "bg-blue-100" };
+  if (year < 0) return { name: "Vedic Era", color: "from-green-500 to-green-700", textColor: "text-green-700", bgColor: "bg-green-100" };
+  if (year < 500) return { name: "Classical Period", color: "from-orange-500 to-orange-700", textColor: "text-orange-700", bgColor: "bg-orange-100" };
+  if (year < 1000) return { name: "Early Medieval", color: "from-purple-500 to-purple-700", textColor: "text-purple-700", bgColor: "bg-purple-100" };
+  if (year < 1500) return { name: "Medieval Period", color: "from-pink-500 to-pink-700", textColor: "text-pink-700", bgColor: "bg-pink-100" };
+  return { name: "Modern Era", color: "from-indigo-500 to-indigo-700", textColor: "text-indigo-700", bgColor: "bg-indigo-100" };
 };
 
-// Header Component
-const TimelineHeader: React.FC<{ artifacts: Artifact[] }> = ({ artifacts }) => (
-  <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white p-8">
-    <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center space-x-4">
-        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/20">
-          <Zap className="h-8 w-8 text-yellow-400" />
-        </div>
-        <div>
-          <h2 className="text-3xl font-bold mb-2">Heritage Timeline</h2>
-          <p className="text-slate-300 text-lg">Interactive journey through Indian cultural history</p>
-        </div>
-      </div>
-      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-yellow-400">{artifacts.length}</div>
-          <div className="text-sm text-slate-300">Artifacts</div>
+// Enhanced Header Component
+const TimelineHeader: React.FC<{ artifacts: Artifact[] }> = ({ artifacts }) => {
+  const categories = new Set(artifacts.map(a => a.category)).size;
+  const cultures = new Set(artifacts.map(a => a.culture)).size;
+  const locations = new Set(artifacts.map(a => a.location.split(',')[0])).size;
+  
+  return (
+    <div className="relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="7" cy="7" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+      
+      <div className="relative z-10 p-8 text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8">
+            <div className="flex items-center space-x-6 mb-6 lg:mb-0">
+              <div className="relative">
+                <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-4 rounded-2xl shadow-2xl transform rotate-3">
+                  <Zap className="h-10 w-10 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                  Heritage Timeline
+                </h1>
+                <p className="text-slate-300 text-lg lg:text-xl max-w-md">
+                  Interactive journey through Indian cultural history spanning millennia
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-2xl">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-yellow-400 mb-1">{artifacts.length}</div>
+                <div className="text-sm text-slate-300 font-medium">Artifacts</div>
+                <div className="text-xs text-slate-400 mt-2">Curated Collection</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: Calendar, label: 'Time Span', value: '4,500+ Years', color: 'from-blue-400 to-blue-500' },
+              { icon: Users, label: 'Cultures', value: cultures.toString(), color: 'from-green-400 to-green-500' },
+              { icon: Star, label: 'Categories', value: categories.toString(), color: 'from-yellow-400 to-yellow-500' },
+              { icon: MapPin, label: 'Locations', value: `${locations}+`, color: 'from-purple-400 to-purple-500' }
+            ].map((stat, index) => (
+              <div key={index} className="group bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105">
+                <div className={`bg-gradient-to-r ${stat.color} p-2 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                  <stat.icon className="h-5 w-5 text-white" />
+                </div>
+                <div className="text-xs text-slate-400 mb-1 uppercase tracking-wide">{stat.label}</div>
+                <div className="font-bold text-lg text-white">{stat.value}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-        <Calendar className="h-5 w-5 text-blue-400 mb-2" />
-        <div className="text-sm text-slate-300">Time Span</div>
-        <div className="font-bold">4,500+ Years</div>
+  );
+};
+
+// Enhanced Timeline Track
+const TimelineTrack: React.FC<{ artifacts: any[] }> = ({ artifacts }) => {
+  return (
+    <div className="relative mb-20">
+      {/* Main timeline line */}
+      <div className="relative h-1 bg-gradient-to-r from-blue-300 via-purple-300 via-orange-300 to-pink-300 rounded-full shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 via-orange-500 to-pink-500 rounded-full opacity-70 animate-pulse"></div>
       </div>
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-        <Users className="h-5 w-5 text-green-400 mb-2" />
-        <div className="text-sm text-slate-300">Cultures</div>
-        <div className="font-bold">{new Set(artifacts.map(a => a.culture)).size}</div>
-      </div>
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-        <Star className="h-5 w-5 text-yellow-400 mb-2" />
-        <div className="text-sm text-slate-300">Categories</div>
-        <div className="font-bold">{new Set(artifacts.map(a => a.category)).size}</div>
-      </div>
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-        <MapPin className="h-5 w-5 text-purple-400 mb-2" />
-        <div className="text-sm text-slate-300">Locations</div>
-        <div className="font-bold">{new Set(artifacts.map(a => a.location.split(',')[0])).size}+</div>
+      
+      {/* Era markers */}
+      <div className="absolute top-4 left-0 right-0 flex justify-between text-xs text-gray-500">
+        <span className="bg-white px-2 py-1 rounded-full shadow-sm">Ancient</span>
+        <span className="bg-white px-2 py-1 rounded-full shadow-sm">Classical</span>
+        <span className="bg-white px-2 py-1 rounded-full shadow-sm">Medieval</span>
+        <span className="bg-white px-2 py-1 rounded-full shadow-sm">Modern</span>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-// Timeline Track Component
-const TimelineTrack: React.FC = () => (
-  <div className="relative h-2 bg-gradient-to-r from-blue-200 via-purple-200 via-orange-200 to-pink-200 rounded-full mb-16 shadow-inner">
-    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-400 via-orange-400 to-pink-400 rounded-full opacity-60"></div>
-  </div>
-);
-
-// Artifact Item Component
-const ArtifactItem: React.FC<{
-  artifact: Artifact & { position: number };
+// Enhanced Artifact Dot
+const ArtifactDot: React.FC<{
+  artifact: any;
   onClick: () => void;
   isActive: boolean;
   onHover: () => void;
   onLeave: () => void;
 }> = ({ artifact, onClick, isActive, onHover, onLeave }) => {
-  const era = eraInfo(artifact.year);
+  const config = categoryConfig[artifact.category] || categoryConfig['Architecture'];
   const formatYear = (year: number) => (year < 0 ? `${Math.abs(year)} BCE` : `${year} CE`);
 
   return (
     <div
-      className="absolute transform -translate-x-1/2"
-      style={{ left: `${artifact.position}%`, top: '-2rem' }}
+      className="absolute transform -translate-x-1/2 group cursor-pointer"
+      style={{ left: `${artifact.position}%`, top: '-1.5rem' }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      onClick={onClick}
     >
-      <div
-        className={`relative w-6 h-6 rounded-full cursor-pointer transition-all duration-300 border-4 border-white shadow-lg hover:scale-125 ${categoryColors[artifact.category] || 'bg-slate-500'} ${isActive ? 'scale-150 shadow-2xl' : ''}`}
-        onMouseEnter={onHover}
-        onMouseLeave={onLeave}
-        onClick={onClick}
-      >
+      {/* Connection line */}
+      <div className="absolute top-6 left-1/2 transform -translate-x-0.5 w-px h-8 bg-gray-300 group-hover:bg-gray-400 transition-colors"></div>
+      
+      {/* Main dot */}
+      <div className={`relative w-8 h-8 rounded-full bg-gradient-to-br ${config.color} shadow-lg border-4 border-white transition-all duration-300 group-hover:scale-125 ${isActive ? 'scale-150 shadow-2xl ring-4 ring-white/50' : ''}`}>
         {isActive && (
-          <div className={`absolute inset-0 rounded-full ${categoryColors[artifact.category]} animate-ping opacity-75`}></div>
+          <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${config.color} animate-ping opacity-75`}></div>
         )}
-        <div className="absolute inset-0 flex items-center justify-center text-xs">
-          {categoryIcons[artifact.category] || '🏛️'}
+        <div className="absolute inset-0 flex items-center justify-center text-sm">
+          {config.icon}
         </div>
+        
+        {/* Glow effect */}
+        <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${config.color} opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-md scale-150`}></div>
       </div>
-      <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
-        <div className={`bg-white rounded-lg px-3 py-1 shadow-md border transition-all duration-300 ${isActive ? 'border-orange-300 bg-orange-50' : 'border-gray-200'}`}>
+      
+      {/* Year label */}
+      <div className="absolute top-14 left-1/2 transform -translate-x-1/2">
+        <div className={`bg-white rounded-lg px-3 py-2 shadow-md border transition-all duration-300 ${isActive ? 'border-orange-300 bg-orange-50 scale-110' : 'border-gray-200'}`}>
           <div className="text-xs font-bold text-gray-800 whitespace-nowrap">
             {formatYear(artifact.year)}
           </div>
+          <div className="text-xs text-gray-500 text-center mt-1">
+            {artifact.culture}
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-// Preview Card Component
-const PreviewCard: React.FC<{ artifact: Artifact; onClick: () => void }> = ({ artifact, onClick }) => {
+// Enhanced Preview Card
+const PreviewCard: React.FC<{ artifact: any; onClose: () => void }> = ({ artifact, onClose }) => {
+  const config = categoryConfig[artifact.category] || categoryConfig['Architecture'];
   const era = eraInfo(artifact.year);
 
   return (
-    <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50">
-      <div className="w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-        <div className={`${categoryColors[artifact.category]} p-4 text-white`}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">{categoryIcons[artifact.category]}</span>
-              <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium">
-                {artifact.category}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className={`bg-gradient-to-r ${config.color} p-6 text-white relative overflow-hidden`}>
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="text-3xl">{config.icon}</div>
+                <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
+                  {artifact.category}
+                </div>
+              </div>
+              <div className={`bg-gradient-to-r ${era.color} px-4 py-2 rounded-full text-sm font-bold text-white shadow-lg`}>
+                {era.name}
               </div>
             </div>
-            <div className={`${era.color} px-3 py-1 rounded-full text-xs font-bold text-white`}>
-              {era.name}
-            </div>
+            <h2 className="text-2xl lg:text-3xl font-bold leading-tight mb-2">{artifact.title}</h2>
+            <p className="text-white/90 text-lg">{artifact.period}</p>
           </div>
-          <h3 className="text-xl font-bold leading-tight">{artifact.title}</h3>
         </div>
-        <div className="relative h-48 overflow-hidden">
+
+        {/* Image */}
+        <div className="relative h-64 lg:h-80 overflow-hidden">
           <img
             src={artifact.imageUrl}
             alt={artifact.title}
-            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-          <div className="absolute bottom-3 right-3">
-            <div className="bg-black/70 text-white p-2 rounded-full backdrop-blur-sm">
-              <Eye className="h-4 w-4" />
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-orange-500" />
-              <div>
-                <div className="text-xs text-gray-500">Period</div>
-                <div className="text-sm font-medium text-gray-800 truncate">{artifact.period}</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-green-500" />
-              <div>
-                <div className="text-xs text-gray-500">Culture</div>
-                <div className="text-sm font-medium text-gray-800 truncate">{artifact.culture}</div>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2 mb-4">
-            <MapPin className="h-4 w-4 text-blue-500" />
-            <div>
-              <div className="text-xs text-gray-500">Location</div>
-              <div className="text-sm font-medium text-gray-800">{artifact.location}</div>
-            </div>
-          </div>
-          <p className="text-sm text-gray-700 leading-relaxed mb-4 line-clamp-3">
-            {artifact.description}
-          </p>
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-3 mb-4">
-            <div className="flex items-start space-x-2">
-              <Star className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <div className="text-xs font-medium text-yellow-700 mb-1">Historical Significance</div>
-                <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed">
-                  {artifact.significance}
-                </p>
-              </div>
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
           <button
-            onClick={onClick}
-            className={`w-full ${categoryColors[artifact.category]} text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 flex items-center justify-center space-x-2`}
+            onClick={onClose}
+            className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full backdrop-blur-sm hover:bg-black/70 transition-colors"
           >
-            <span>Explore Details</span>
-            <ChevronRight className="h-4 w-4" />
+            ✕
           </button>
         </div>
-        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-          <div className="w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-white filter drop-shadow-lg"></div>
+
+        {/* Content */}
+        <div className="p-6 lg:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="flex items-center space-x-3">
+              <div className={`bg-gradient-to-r ${config.color} p-2 rounded-lg`}>
+                <Clock className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">Period</div>
+                <div className="text-sm font-semibold text-gray-800">{artifact.period}</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className={`bg-gradient-to-r ${config.color} p-2 rounded-lg`}>
+                <Users className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">Culture</div>
+                <div className="text-sm font-semibold text-gray-800">{artifact.culture}</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className={`bg-gradient-to-r ${config.color} p-2 rounded-lg`}>
+                <MapPin className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">Location</div>
+                <div className="text-sm font-semibold text-gray-800">{artifact.location}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-3">Description</h3>
+            <p className="text-gray-700 leading-relaxed">{artifact.description}</p>
+          </div>
+
+          <div className={`bg-gradient-to-br ${config.lightBg} border ${config.border} rounded-2xl p-6`}>
+            <div className="flex items-start space-x-3">
+              <div className={`bg-gradient-to-r ${config.color} p-2 rounded-lg flex-shrink-0`}>
+                <Star className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-800 mb-2">Historical Significance</h4>
+                <p className="text-gray-700 text-sm leading-relaxed">{artifact.significance}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-// Instructions Component
+// Enhanced Instructions
 const Instructions: React.FC = () => (
-  <div className="bg-gradient-to-r from-slate-100 to-blue-100 p-6 border-t border-gray-200">
-    <div className="max-w-4xl mx-auto text-center">
-      <div className="flex items-center justify-center space-x-2 mb-4">
-        <Info className="h-5 w-5 text-blue-600" />
-        <h4 className="text-lg font-bold text-gray-800">How to Use</h4>
+  <div className="bg-gradient-to-br from-slate-50 to-blue-50 border-t border-gray-200">
+    <div className="max-w-6xl mx-auto p-8">
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center space-x-3 mb-4">
+          <div className="bg-blue-500 p-2 rounded-lg">
+            <Info className="h-6 w-6 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800">How to Explore</h3>
+        </div>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Navigate through centuries of Indian heritage with intuitive interactions
+        </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-        <div className="flex flex-col items-center">
-          <div className="bg-blue-100 p-3 rounded-full mb-3">
-            <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {[
+          {
+            icon: '👆',
+            title: 'Hover to Preview',
+            description: 'Move your cursor over any artifact dot to see a quick preview with essential information',
+            color: 'from-blue-500 to-blue-600'
+          },
+          {
+            icon: '🔍',
+            title: 'Click to Explore',
+            description: 'Click on any artifact to open a detailed modal with comprehensive information and high-quality images',
+            color: 'from-green-500 to-green-600'
+          },
+          {
+            icon: '⏳',
+            title: 'Navigate Time',
+            description: 'Scroll through the timeline to discover artifacts from different eras and civilizations',
+            color: 'from-orange-500 to-orange-600'
+          }
+        ].map((instruction, index) => (
+          <div key={index} className="group text-center">
+            <div className={`bg-gradient-to-r ${instruction.color} w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+              <span className="text-2xl">{instruction.icon}</span>
+            </div>
+            <h4 className="text-lg font-bold text-gray-800 mb-3">{instruction.title}</h4>
+            <p className="text-gray-600 leading-relaxed text-sm">{instruction.description}</p>
           </div>
-          <div className="font-semibold text-gray-800 mb-1">Hover to Preview</div>
-          <div className="text-gray-600">Move your cursor over any artifact dot to see a detailed preview card</div>
-        </div>
-        <div className="flex flex-col items-center">
-          <div className="bg-green-100 p-3 rounded-full mb-3">
-            <Eye className="h-4 w-4 text-green-600" />
-          </div>
-          <div className="font-semibold text-gray-800 mb-1">Click to Explore</div>
-          <div className="text-gray-600">Click on any artifact to open the detailed information panel</div>
-        </div>
-        <div className="flex flex-col items-center">
-          <div className="bg-orange-100 p-3 rounded-full mb-3">
-            <Clock className="h-4 w-4 text-orange-600" />
-          </div>
-          <div className="font-semibold text-gray-800 mb-1">Navigate Time</div>
-          <div className="text-gray-600">Scroll horizontally to explore different time periods</div>
-        </div>
+        ))}
       </div>
     </div>
   </div>
 );
 
-// Main TimelineVisualization Component
-interface TimelineVisualizationProps {
-  artifacts: Artifact[];
-  onArtifactClick: (artifact: Artifact) => void;
-}
-
-export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ artifacts, onArtifactClick }) => {
+// Main Component
+const ProfessionalTimelineVisualization: React.FC = () => {
   const [hoveredArtifact, setHoveredArtifact] = useState<string | null>(null);
   const [selectedArtifact, setSelectedArtifact] = useState<string | null>(null);
+  const [artifacts] = useState<Artifact[]>(sampleArtifacts);
 
   const processedArtifacts = useMemo(() => {
     if (!artifacts || artifacts.length === 0) return [];
@@ -278,57 +416,55 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ ar
     }));
   }, [artifacts]);
 
-  if (!artifacts || artifacts.length === 0) {
-    return (
-      <div className="bg-white rounded-3xl shadow-xl p-12 text-center border border-gray-100">
-        <div className="text-gray-400 mb-4">
-          <Clock className="mx-auto h-16 w-16" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-2">No artifacts to display</h3>
-        <p className="text-gray-600">Add some artifacts to see the timeline</p>
-      </div>
-    );
-  }
+  const handleArtifactClick = (artifact: Artifact) => {
+    setSelectedArtifact(artifact.id);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedArtifact(null);
+  };
 
   return (
-    <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-      <TimelineHeader artifacts={artifacts} />
-      <div className="p-8 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="relative">
-          <TimelineTrack />
-          <div className="relative">
-            {processedArtifacts.map((artifact) => {
-              const isActive = hoveredArtifact === artifact.id || selectedArtifact === artifact.id;
-              return (
-                <ArtifactItem
-                  key={artifact.id}
-                  artifact={artifact}
-                  onClick={() => {
-                    setSelectedArtifact(selectedArtifact === artifact.id ? null : artifact.id);
-                    onArtifactClick(artifact);
-                  }}
-                  isActive={isActive}
-                  onHover={() => setHoveredArtifact(artifact.id)}
-                  onLeave={() => setHoveredArtifact(null)}
-                />
-              );
-            })}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="bg-white shadow-2xl">
+        <TimelineHeader artifacts={artifacts} />
+        
+        <div className="p-8 lg:p-12">
+          <div className="max-w-7xl mx-auto">
+            <div className="relative">
+              <TimelineTrack artifacts={processedArtifacts} />
+              
+              <div className="relative min-h-32">
+                {processedArtifacts.map((artifact) => {
+                  const isActive = hoveredArtifact === artifact.id;
+                  return (
+                    <ArtifactDot
+                      key={artifact.id}
+                      artifact={artifact}
+                      onClick={() => handleArtifactClick(artifact)}
+                      isActive={isActive}
+                      onHover={() => setHoveredArtifact(artifact.id)}
+                      onLeave={() => setHoveredArtifact(null)}
+                    />
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          {hoveredArtifact && processedArtifacts.find(a => a.id === hoveredArtifact) && (
-            <PreviewCard
-              artifact={processedArtifacts.find(a => a.id === hoveredArtifact)!}
-              onClick={() => onArtifactClick(processedArtifacts.find(a => a.id === hoveredArtifact)!)}
-            />
-          )}
-          {selectedArtifact && processedArtifacts.find(a => a.id === selectedArtifact) && (
-            <PreviewCard
-              artifact={processedArtifacts.find(a => a.id === selectedArtifact)!}
-              onClick={() => onArtifactClick(processedArtifacts.find(a => a.id === selectedArtifact)!)}
-            />
-          )}
         </div>
+        
+        <Instructions />
       </div>
-      <Instructions />
+
+      {/* Modal */}
+      {selectedArtifact && processedArtifacts.find(a => a.id === selectedArtifact) && (
+        <PreviewCard
+          artifact={processedArtifacts.find(a => a.id === selectedArtifact)!}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };
+
+export default ProfessionalTimelineVisualization;
