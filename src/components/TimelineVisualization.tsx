@@ -403,10 +403,10 @@ const Instructions: React.FC = () => (
 );
 
 // Main Component
-const ProfessionalTimelineVisualization: React.FC = () => {
+export const TimelineVisualization: React.FC<{ artifacts: Artifact[]; onArtifactClick: (artifact: Artifact) => void }> = ({ artifacts: propArtifacts, onArtifactClick }) => {
   const [hoveredArtifact, setHoveredArtifact] = useState<string | null>(null);
   const [selectedArtifact, setSelectedArtifact] = useState<string | null>(null);
-  const [artifacts] = useState<Artifact[]>(sampleArtifacts);
+  const [artifacts] = useState<Artifact[]>(propArtifacts || sampleArtifacts);
 
   const processedArtifacts = useMemo(() => {
     if (!artifacts || artifacts.length === 0) return [];
@@ -423,6 +423,7 @@ const ProfessionalTimelineVisualization: React.FC = () => {
 
   const handleArtifactClick = (artifact: Artifact) => {
     setSelectedArtifact(artifact.id);
+    onArtifactClick(artifact);
   };
 
   const handleCloseModal = () => {
@@ -472,4 +473,4 @@ const ProfessionalTimelineVisualization: React.FC = () => {
   );
 };
 
-export default ProfessionalTimelineVisualization;
+export default TimelineVisualization;
