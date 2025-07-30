@@ -255,7 +255,7 @@ const ArtifactDot: React.FC<{
 };
 
 // Enhanced Preview Card
-const PreviewCard: React.FC<{ artifact: any; onClose: () => void }> = ({ artifact, onClose }) => {
+const PreviewCard: React.FC<{ artifact: any; onClick: () => void; onClose: () => void }> = ({ artifact, onClick, onClose }) => {
   const config = categoryConfig[artifact.category] || categoryConfig['Architecture'];
   const era = eraInfo(artifact.year);
 
@@ -423,6 +423,7 @@ export const TimelineVisualization: React.FC<{ artifacts: Artifact[]; onArtifact
 
   const handleArtifactClick = (artifact: Artifact) => {
     setSelectedArtifact(artifact.id);
+    setHoveredArtifact(null); // Clear hover state when clicking
     onArtifactClick(artifact);
   };
 
@@ -462,10 +463,11 @@ export const TimelineVisualization: React.FC<{ artifacts: Artifact[]; onArtifact
         <Instructions />
       </div>
 
-      {/* Modal */}
+      {/* Modal - Only show when selectedArtifact exists */}
       {selectedArtifact && processedArtifacts.find(a => a.id === selectedArtifact) && (
         <PreviewCard
           artifact={processedArtifacts.find(a => a.id === selectedArtifact)!}
+          onClick={() => {}}
           onClose={handleCloseModal}
         />
       )}
